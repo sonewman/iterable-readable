@@ -104,3 +104,49 @@ desc('Iterable-Readable')
     t.end()
   })
 })
+.it('should take a transform function with array', function (t) {
+  var arr = [1, 2, 3, 4, 5]
+  var got = []
+
+  it(arr, function (val, next) {
+    next(null, val * 2)
+  })
+  .pipe(new Writable({
+    objectMode: true,
+    write: function (val, enc, next) {
+      got.push(val)
+      next()
+    }
+  }))
+  .on('finish', function () {
+    t.eqls(got, [2, 4, 6, 8, 10])
+    t.end()
+  })
+})
+.it('should take a transform function with a generator', function (t) {
+  var arr = [1, 2, 3, 4, 5]
+  var got = []
+
+  var i = 0
+  function* gen() {
+    while (i < arr.length) {
+      yield arr[i]
+      i += 1
+    }
+  }
+
+  it(gen, function (val, next) {
+    next(null, val * 2)
+  })
+  .pipe(new Writable({
+    objectMode: true,
+    write: function (val, enc, next) {
+      got.push(val)
+      next()
+    }
+  }))
+  .on('finish', function () {
+    t.eqls(got, [2, 4, 6, 8, 10])
+    t.end()
+  })
+})

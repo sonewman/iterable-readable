@@ -55,6 +55,23 @@ function setObjectMode(v, options) {
     && options.objectMode !== false
 }
 
+function read_(str, data, done) {
+  function push(err, data) {
+    if (err) return str.emit('error', err)
+    str.push(data)
+    done()
+  }
+
+  if (data == null) return str.push(null)
+
+  if ('function' === typeof str._callback) {
+    str._callback(data, push)
+  } else {
+    str.push(data)
+    done()
+  }
+}
+
 function ArrayReadable(iterable, opts, fn) {
   this._iterable = iterable
   this._callback = fn
@@ -79,32 +96,34 @@ ArrayReadable.prototype = Object.create(Readable.prototype, {
 })
 
 ArrayReadable.prototype._read = function () {
-  if (this._index < this._length) {
-    this.push(this._iterable[this._index])
+  var self = this
+  if (self._index < self._length)
+    read_(self, self._iterable[self._index], finishRead)
 
-    this._index += 1
-    if (this._index === this._length)
-      this.push(null)
+  function finishRead() {
+    self._index += 1
+    if (self._index === self._length)
+      self.push(null)
   }
 }
 
-function push_(str, v) {
-  if (v.done) return str.push(null)
-  else return str.push(v.value)
+function pushGenValue_(v) {
+  return v.done ? null : v.value
 }
 
 function IterableReadable(iterable, opts, fn) {
   this._iterable = iterable
   this._callback = fn
 
-  var v = iterable.next()
+  this._initv = iterable.next()
 
   var options = assign({}, opts)
-  if (setObjectMode(v, options))
+  if (setObjectMode(this._initv, options))
     options.objectMode = true
 
   Readable.call(this, options)
-  push_(this, v)
+
+  this._initRun = true
 }
 
 IterableReadable.prototype = Object.create(Readable.prototype, {
@@ -112,6 +131,11 @@ IterableReadable.prototype = Object.create(Readable.prototype, {
 })
 
 IterableReadable.prototype._read = function () {
-  var v = this._iterable.next()
-  push_(this, v)
+  if (this._initRun) {
+    this._initRun = false
+    read_(this, pushGenValue_(this._initv), noop)
+    this._initv = null
+  } else {
+    read_(this, pushGenValue_(this._iterable.next()), noop)
+  }
 }
