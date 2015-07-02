@@ -1,0 +1,31 @@
+{
+  "name": "iterable-readable",
+  "version": "0.0.0",
+  "description": "Iterable readable stream",
+  "main": "iterable-readable.js",
+  "scripts": {
+    "test": "macchiato test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sonewman/iterable-readable.git"
+  },
+  "keywords": [
+    "iterable",
+    "readable",
+    "stream"
+  ],
+  "author": "Sam Newman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sonewman/iterable-readable/issues"
+  },
+  "homepage": "https://github.com/sonewman/iterable-readable#readme",
+  "dependencies": {
+    "object-assign": "^3.0.0",
+    "readable-stream": "^2.0.1"
+  },
+  "devDependencies": {
+    "macchiato": "^4.1.0"
+  }
+}
